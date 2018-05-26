@@ -4,8 +4,8 @@ avrFreq=16000000 # 16 Mhz
 programmerDev=/dev/ttyACM0
 programmerType=arduino
 
-cflags=-DF_CPU=$(avrFreq) -mmcu=$(avrType) -Wall -Werror -Wextra -Os -g -std=c99 -Iinclude #-Os
-objects=$(patsubst %.c,%.o,$(wildcard *.c src/*.c))
+cflags=-DF_CPU=$(avrFreq) -mmcu=$(avrType) -Wall -Werror -Wextra -Os -std=c99 -Iinclude #-Os
+objects=$(patsubst %.c,%.o,$(wildcard *.c src/*.c src/driver/*.c))
 
 .PHONY: flash clean
 

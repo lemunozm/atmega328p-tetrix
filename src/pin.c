@@ -44,14 +44,4 @@ uint8_t digital_pin_in(uint8_t pin)
     return LOW;
 }
 
-void shift_out(uint8_t data_pin, uint8_t clock_pin, uint8_t bit_order, uint8_t value)
-{
-    for (int i = 0; i < 8; i++)
-    {
-        uint8_t index = (bit_order == LSB) ? i : 7 - i;
-        digital_pin_out(data_pin, (value & (1 << index)) > 0);
-        digital_pin_out(clock_pin, HIGH);
-        digital_pin_out(clock_pin, LOW);
-    }
-}
 

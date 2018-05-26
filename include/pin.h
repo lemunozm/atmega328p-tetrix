@@ -34,8 +34,4 @@ void pin_mode(uint8_t pin, uint8_t dir);
 void digital_pin_out(uint8_t pin, uint8_t value);
 uint8_t digital_pin_in(uint8_t pin);
 
-#define MSB 1
-#define LSB 0
-void shift_out(uint8_t data_pin, uint8_t clock_pin, uint8_t bit_order, uint8_t value);
-
 #endif // _SDK_PIN_H_
