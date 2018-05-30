@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define LFSR_MAX 255
+
 typedef struct LFSR
 {
     uint16_t state;
