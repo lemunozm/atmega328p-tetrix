@@ -188,9 +188,6 @@ int main(void)
     LFSR lfsr;
     init_lfsr(&lfsr, 0xACE1); //TODO: from entropy
 
-    //port_mode(PORT_0, PORT_OUTPUT);
-    //digital_port_out(PORT_0, 0);
-
     pin_mode(D_PIN_13, PIN_INPUT);
     pin_mode(D_PIN_12, PIN_INPUT);
     pin_mode(D_PIN_11, PIN_INPUT);
@@ -205,19 +202,16 @@ int main(void)
             while(tetrix_move_figure(&tetrix, -1, Y_AXIS))
             {
                 tetrix_display(&tetrix, &dld);
-                int fast = digital_pin_in(D_PIN_13);
-                if(fast)
+                int waiting = digital_pin_in(D_PIN_13) ? 1 : 25;
+                int right_movement = 0;
+                int left_movement = 0;
+                for(int i = 0; i < waiting; i++)
                 {
+                    right_movement |= digital_pin_in(D_PIN_11);
+                    left_movement |= digital_pin_in(D_PIN_12);
                     _delay_ms(10);
                 }
-                else
-                {
-                    _delay_ms(250);
-                }
-                int right_movement = digital_pin_in(D_PIN_11);
-                int left_movement = digital_pin_in(D_PIN_12);
-                int x_movement = right_movement - left_movement;
-                tetrix_move_figure(&tetrix, x_movement, X_AXIS);
+                tetrix_move_figure(&tetrix, right_movement - left_movement, X_AXIS);
             }
             tetrix_table_update(&tetrix);
         }
