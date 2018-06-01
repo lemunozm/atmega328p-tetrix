@@ -5,6 +5,7 @@
 #include <util/delay.h>
 #include <stdlib.h>
 
+#include <avr/io.h>
 #define TABLE_WIDTH 8
 #define TABLE_HEIGHT 32
 
@@ -97,7 +98,7 @@ bool tetrix_move_figure(Tetrix* tetrix, int movement, int axis)
     uint8_t* fixed = (axis == X_AXIS) ? tetrix->figure_y : tetrix->figure_x;
     for(int i = 0; i < FIGURE_SIZE; i++)
     {
-        int8_t destination = coordinates[i] + movement;
+        int destination = coordinates[i] + movement;
         if(destination < 0 || (axis == X_AXIS && destination >= TABLE_WIDTH)
                            || (axis == Y_AXIS && destination >= TABLE_HEIGHT + FIGURE_SIZE))
         {
@@ -174,7 +175,6 @@ void tetrix_display(Tetrix* tetrix, DigitLedDisplay* dld)
     }
 }
 
-#define DT 1
 int main(void)
 {
     SPI spi;
@@ -188,11 +188,12 @@ int main(void)
     LFSR lfsr;
     init_lfsr(&lfsr, 0xACE1); //TODO: from entropy
 
-    pin_mode(D_PIN_11, PIN_INPUT);
-    pin_mode(D_PIN_12, PIN_INPUT);
+    //port_mode(PORT_0, PORT_OUTPUT);
+    //digital_port_out(PORT_0, 0);
+
     pin_mode(D_PIN_13, PIN_INPUT);
-    pin_mode(D_PIN_5, PIN_OUTPUT);
-    digital_pin_out(D_PIN_5, digital_pin_in(D_PIN_11));
+    pin_mode(D_PIN_12, PIN_INPUT);
+    pin_mode(D_PIN_11, PIN_INPUT);
 
     while(true)
     {
@@ -204,8 +205,18 @@ int main(void)
             while(tetrix_move_figure(&tetrix, -1, Y_AXIS))
             {
                 tetrix_display(&tetrix, &dld);
-                _delay_ms(DT);
-                int x_movement = 0; //TODO: read_user_input
+                int fast = digital_pin_in(D_PIN_13);
+                if(fast)
+                {
+                    _delay_ms(10);
+                }
+                else
+                {
+                    _delay_ms(250);
+                }
+                int right_movement = digital_pin_in(D_PIN_11);
+                int left_movement = digital_pin_in(D_PIN_12);
+                int x_movement = right_movement - left_movement;
                 tetrix_move_figure(&tetrix, x_movement, X_AXIS);
             }
             tetrix_table_update(&tetrix);

@@ -34,11 +34,11 @@ uint8_t digital_pin_in(uint8_t pin)
 {
     if(pin < 8)
     {
-        return PIND & (1 << pin);
+        return !!(PIND & (1 << pin));
     }
     else if(pin < 16)
     {
-        return PINB & (1 << (pin - 8));
+        return !!(PINB & (1 << (pin - 8)));
     }
 
     return LOW;
