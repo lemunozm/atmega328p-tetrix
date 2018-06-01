@@ -43,7 +43,7 @@ void dld_light(DigitLedDisplay* dld, bool value)
 
 void dld_row(DigitLedDisplay* dld, uint8_t x, uint8_t* values)
 {
-    dld_write_values(dld, DLD_OP_DIGIT_0 + (x % 8), values);
+    dld_write_values(dld, DLD_OP_DIGIT_0 + x, values);
 }
 
 void dld_clear(DigitLedDisplay* dld)

@@ -8,7 +8,7 @@
 #define TABLE_WIDTH 8
 #define TABLE_HEIGHT 32
 
-#define FIGURE_SIZE 5
+#define FIGURE_SIZE 4
 
 #define BLOCK_EMPTY 0
 #define BLOCK_WALL 1
@@ -36,7 +36,7 @@ void init_tetrix(Tetrix* tetrix)
 
     for(int i = 0; i < FIGURE_SIZE; i++)
     {
-        tetrix->figure_x[i] = TABLE_HEIGHT;
+        tetrix->figure_x[i] = 0;
         tetrix->figure_y[i] = TABLE_HEIGHT;
     }
 }
@@ -52,40 +52,43 @@ bool tetrix_end(Tetrix* tetrix)
     return end;
 }
 
-//TODO:
-// - por que necesito dividir con un bit mas en LFSR/MAX?
-// - por que salen solo dos tipos de figuras?
-// - anadir limites
-//     - eje x bounded respecto a los limites de la tabla y la propia figura
-//     - eje y solo hacia arriba unbounded
 void tetrix_create_figure(Tetrix* tetrix, uint16_t figure_seed)
 {
     LFSR lfsr;
     init_lfsr(&lfsr, figure_seed);
 
-    tetrix->figure_x[0] = lfsr_generate(&lfsr) / (LFSR_MAX / 16); //0-8
+    tetrix->figure_x[0] = FIGURE_SIZE;
     tetrix->figure_y[0] = TABLE_HEIGHT;
 
-    port_mode(PORT_0, PORT_OUTPUT);
-    digital_port_out(PORT_0, tetrix->figure_x[0]);
-
+    int x_direction = (lfsr_generate_bounded(&lfsr, 2) == 1) ? 1 : -1;
+    int x_displacement = 0;
     for(int i = 1; i < FIGURE_SIZE; i++)
     {
-        int direction = lfsr_generate(&lfsr) / (LFSR_MAX / 8); //0-4, 2 lowest bits
-        uint8_t axis = (direction & 1) ? X_AXIS : Y_AXIS;
-        uint8_t displacement = (direction & 1) ? 1 : -1;
-        if(axis == X_AXIS)
+        int axis = lfsr_generate_bounded(&lfsr, 2);
+        switch (axis)
         {
-            tetrix->figure_x[i] = tetrix->figure_x[i - 1] + displacement;
-            tetrix->figure_y[i] = tetrix->figure_y[i - 1];
-        }
-        else
-        {
-            tetrix->figure_x[i] = tetrix->figure_x[i - 1];
-            tetrix->figure_y[i] = tetrix->figure_y[i - 1] + displacement;
+            case X_AXIS:
+                tetrix->figure_x[i] = tetrix->figure_x[i - 1] + x_direction;
+                tetrix->figure_y[i] = tetrix->figure_y[i - 1];
+                x_displacement++;
+                break;
+
+            case Y_AXIS:
+                tetrix->figure_x[i] = tetrix->figure_x[i - 1];
+                tetrix->figure_y[i] = tetrix->figure_y[i - 1] + 1;
+                break;
         }
     }
 
+    //random x init coordinate (optional)
+    int x_left = (x_direction == 1) ? FIGURE_SIZE : FIGURE_SIZE - x_displacement;
+    int x_right = (x_direction == 1) ? FIGURE_SIZE + x_displacement : FIGURE_SIZE;
+    int movement = lfsr_generate_bounded(&lfsr, TABLE_WIDTH - x_right + x_left) - x_left;
+
+    for(int i = 0; i < FIGURE_SIZE; i++)
+    {
+        tetrix->figure_x[i] += movement;
+    }
 }
 
 bool tetrix_move_figure(Tetrix* tetrix, int movement, int axis)
@@ -125,6 +128,26 @@ void tetrix_table_update(Tetrix* tetrix)
     {
         tetrix->table[tetrix->figure_y[i]][tetrix->figure_x[i]] = BLOCK_WALL;
     }
+
+    int current_row = 0;
+    for(int y = 0; y < TABLE_HEIGHT; y++)
+    {
+        for(int x = 0; x < TABLE_WIDTH; x++)
+        {
+            tetrix->table[current_row][x] = tetrix->table[y][x];
+        }
+
+        bool remove_row = true;
+        for(int x = 0; x < TABLE_WIDTH; x++)
+        {
+            remove_row &= tetrix->table[y][x] == BLOCK_WALL;
+        }
+
+        if(!remove_row)
+        {
+            current_row++;
+        }
+    }
 }
 
 void tetrix_display(Tetrix* tetrix, DigitLedDisplay* dld)
@@ -139,9 +162,10 @@ void tetrix_display(Tetrix* tetrix, DigitLedDisplay* dld)
         uint8_t values_to_display[4] = {0};
         for(int y = 0; y < TABLE_HEIGHT; y++)
         {
-            values_to_display[y / 8] |= (tetrix->table[y][x] << (7 - (y % 8)));
-            dld_row(dld, x, values_to_display);
+            uint8_t value = tetrix->table[y][x] << ((TABLE_WIDTH - 1) - (y % TABLE_WIDTH));
+            values_to_display[y / TABLE_WIDTH] |= value;
         }
+        dld_row(dld, x, values_to_display);
     }
 
     for(int i = 0; i < FIGURE_SIZE; i++)
@@ -150,10 +174,11 @@ void tetrix_display(Tetrix* tetrix, DigitLedDisplay* dld)
     }
 }
 
+#define DT 1
 int main(void)
 {
     SPI spi;
-    init_spi(&spi, DIGITAL_13, UNUSED_PIN, DIGITAL_11, DIGITAL_10, SPI_MSB);
+    init_spi(&spi, D_PIN_10, UNUSED_PIN, D_PIN_9, D_PIN_8, SPI_MSB);
 
     DigitLedDisplay dld;
     init_dld(&dld, &spi, 4);
@@ -163,6 +188,11 @@ int main(void)
     LFSR lfsr;
     init_lfsr(&lfsr, 0xACE1); //TODO: from entropy
 
+    pin_mode(D_PIN_11, PIN_INPUT);
+    pin_mode(D_PIN_12, PIN_INPUT);
+    pin_mode(D_PIN_13, PIN_INPUT);
+    pin_mode(D_PIN_5, PIN_OUTPUT);
+    digital_pin_out(D_PIN_5, digital_pin_in(D_PIN_11));
 
     while(true)
     {
@@ -174,7 +204,7 @@ int main(void)
             while(tetrix_move_figure(&tetrix, -1, Y_AXIS))
             {
                 tetrix_display(&tetrix, &dld);
-                _delay_ms(100);
+                _delay_ms(DT);
                 int x_movement = 0; //TODO: read_user_input
                 tetrix_move_figure(&tetrix, x_movement, X_AXIS);
             }
@@ -182,3 +212,7 @@ int main(void)
         }
     }
 }
+
+//DEBUG method:
+//port_mode(PORT_0, PORT_OUTPUT);
+//digital_port_out(PORT_0, 0);

@@ -3,26 +3,26 @@
 
 #include <stdint.h>
 
-#define DIGITAL_0 0
-#define DIGITAL_1 1
-#define DIGITAL_2 2
-#define DIGITAL_3 3
-#define DIGITAL_4 4
-#define DIGITAL_5 5
-#define DIGITAL_6 6
-#define DIGITAL_7 7
-#define DIGITAL_8 8
-#define DIGITAL_9 9
-#define DIGITAL_10 10
-#define DIGITAL_11 11
-#define DIGITAL_12 12
-#define DIGITAL_13 13
-#define ANALOG_0 16
-#define ANALOG_1 17
-#define ANALOG_2 18
-#define ANALOG_3 19
-#define ANALOG_4 20
-#define ANALOG_5 21
+#define D_PIN_0 0
+#define D_PIN_1 1
+#define D_PIN_2 2
+#define D_PIN_3 3
+#define D_PIN_4 4
+#define D_PIN_5 5
+#define D_PIN_6 6
+#define D_PIN_7 7
+#define D_PIN_8 8
+#define D_PIN_9 9
+#define D_PIN_10 10
+#define D_PIN_11 11
+#define D_PIN_12 12
+#define D_PIN_13 13
+#define A_PIN_0 16
+#define A_PIN_1 17
+#define A_PIN_2 18
+#define A_PIN_3 19
+#define A_PIN_4 20
+#define A_PIN_5 21
 #define UNUSED_PIN 64
 
 #define PIN_OUTPUT 1

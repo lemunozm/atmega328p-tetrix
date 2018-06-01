@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define LFSR_MAX 255
+#define LFSR_MAX 65535
 
 typedef struct LFSR
 {
@@ -13,6 +13,7 @@ typedef struct LFSR
 
 void init_lfsr(LFSR* lfsr, uint16_t seed);
 
-uint8_t lfsr_generate(LFSR* lfsr);
+uint16_t lfsr_generate(LFSR* lfsr);
+uint16_t lfsr_generate_bounded(LFSR* lfsr, uint16_t max);
 
 #endif // _SDK_LFSR_H_
