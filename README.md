@@ -1,6 +1,7 @@
 # atmega328p-tetrix
-A Tetrix implementation using an atmega328p.
+An implementation of a Tetrix game using an ATmega328/p and a MAX7219/MAX7221 for manage a led array.
 
 ## TODO list
-- random seed from entropy
-- rotate figures with a new button
+- Random seed from entropy
+- Modify figure generator algorithm. Maybe build figures for a template?
+- Rotate figures with a new button
