@@ -217,7 +217,3 @@ int main(void)
         }
     }
 }
-
-//DEBUG method:
-//port_mode(PORT_0, PORT_OUTPUT);
-//digital_port_out(PORT_0, 0);
