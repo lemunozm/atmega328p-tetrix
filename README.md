@@ -5,5 +5,5 @@ Currently working!
 
 ### TODO list
 - Random seed from entropy
-- Modify figure generator algorithm. Maybe build figures for a template?
+- Modify figure generator algorithm. Maybe build figures from a template?
 - Rotate figures with a new button
